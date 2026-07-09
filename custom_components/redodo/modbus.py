@@ -1,111 +1,194 @@
-"""Modbus communication layer for Redodo."""
-
-from __future__ import annotations
-
-import asyncio
 import logging
+import struct
+from typing import List
 
-from pymodbus.client import AsyncModbusSerialClient
+import serial
+
+from .const import (
+    DEFAULT_BAUDRATE,
+    DEFAULT_BYTESIZE,
+    DEFAULT_PARITY,
+    DEFAULT_STOPBITS,
+    DEFAULT_TIMEOUT,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
-
 class RedodoModbus:
+    """Redodo native Modbus RTU driver."""
 
     def __init__(
         self,
         port: str,
-        slave: int,
-        baudrate: int,
+        slave: int = 1,
+        baudrate: int = DEFAULT_BAUDRATE,
+        timeout: float = DEFAULT_TIMEOUT,
     ):
 
         self._slave = slave
 
-        self._client = AsyncModbusSerialClient(
+        self._serial = serial.Serial(
             port=port,
             baudrate=baudrate,
-            bytesize=8,
-            parity="N",
-            stopbits=1,
-            timeout=1,
+            bytesize=DEFAULT_BYTESIZE,
+            parity=DEFAULT_PARITY,
+            stopbits=DEFAULT_STOPBITS,
+            timeout=timeout,
         )
 
-        self._lock = asyncio.Lock()
+    @staticmethod
+    def crc16(data: bytes) -> bytes:
+        crc = 0xFFFF
 
-    async def connect(self):
+        for byte in data:
+            crc ^= byte
 
-        if not self._client.connected:
-            await self._client.connect()
+            for _ in range(8):
+                if crc & 1:
+                    crc >>= 1
+                    crc ^= 0xA001
+                else:
+                    crc >>= 1
 
-        return self._client.connected
+        return struct.pack("<H", crc)
 
-    async def close(self):
+    def _send(self, frame: bytes) -> bytes:
 
-        if self._client.connected:
-            self._client.close()
+        packet = frame + self.crc16(frame)
 
-    async def read_holding_registers(
+        _LOGGER.debug("TX %s", packet.hex(" "))
+
+        self._serial.reset_input_buffer()
+        self._serial.write(packet)
+        self._serial.flush()
+
+        response = self._serial.read(256)
+
+        _LOGGER.debug("RX %s", response.hex(" "))
+
+        return response
+
+    def read_registers(
         self,
-        address: int,
+        start: int,
         count: int,
-    ):
+    ) -> List[int]:
 
-        async with self._lock:
+        frame = struct.pack(
+            ">BBHH",
+            self._slave,
+            0x03,
+            start,
+            count,
+        )
 
-            if not await self.connect():
-                raise ConnectionError("Unable to connect")
+        response = self._send(frame)
 
-            result = await self._client.read_holding_registers(
-                address=address,
-                count=count,
-                device_id=self._slave,
-            )
+        if len(response) < 5:
+            raise RuntimeError("No response")
 
-            if result.isError():
-                raise RuntimeError(result)
+        payload = response[:-2]
 
-            return result.registers
+        crc = response[-2:]
 
-    async def write_register(
+        if crc != self.crc16(payload):
+            raise RuntimeError("CRC error")
+
+        if response[1] != 0x03:
+            raise RuntimeError("Invalid response")
+
+        bytecount = response[2]
+
+        values = []
+
+        for i in range(0, bytecount, 2):
+
+            value = struct.unpack(
+                ">H",
+                response[3 + i:5 + i],
+            )[0]
+
+            values.append(value)
+
+        return values
+
+    def read_home(self):
+
+        return self.read_registers(
+            0x0101,
+            19,
+        )
+
+    def read_settings(self):
+
+        return self.read_registers(
+            0x0201,
+            17,
+        )
+
+    def read_today(self):
+
+        return self.read_registers(
+            0x0400,
+            5,
+        )
+
+    def write_single(
         self,
-        address: int,
+        register: int,
         value: int,
-    ):
+    ) -> bool:
 
-        async with self._lock:
+        frame = struct.pack(
+            ">BBHH",
+            self._slave,
+            0x06,
+            register,
+            value,
+        )
 
-            if not await self.connect():
-                raise ConnectionError("Unable to connect")
+        response = self._send(frame)
 
-            result = await self._client.write_register(
-                address=address,
-                value=value,
-                device_id=self._slave,
-            )
+        if len(response) != 8:
+            return False
 
-            if result.isError():
-                raise RuntimeError(result)
+        return response == frame + self.crc16(frame)
 
-            return True
-
-    async def write_registers(
+    def write_multiple(
         self,
-        address: int,
+        start: int,
         values: list[int],
-    ):
+    ) -> bool:
 
-        async with self._lock:
+        quantity = len(values)
 
-            if not await self.connect():
-                raise ConnectionError("Unable to connect")
+        frame = bytearray()
 
-            result = await self._client.write_registers(
-                address=address,
-                values=values,
-                device_id=self._slave,
-            )
+        frame.append(self._slave)
+        frame.append(0x10)
 
-            if result.isError():
-                raise RuntimeError(result)
+        frame.extend(struct.pack(">H", start))
+        frame.extend(struct.pack(">H", quantity))
 
-            return True
+        frame.append(quantity * 2)
+
+        for value in values:
+            frame.extend(struct.pack(">H", value))
+
+        response = self._send(bytes(frame))
+
+        if len(response) != 8:
+            return False
+
+        payload = response[:-2]
+
+        if response[-2:] != self.crc16(payload):
+            return False
+
+        return True
+
+    def close(self):
+
+        if self._serial.is_open:
+            self._serial.close()
+

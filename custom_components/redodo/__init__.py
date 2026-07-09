@@ -1,36 +1,45 @@
+"""The Redodo integration."""
+
 from __future__ import annotations
 
-from homeassistant.const import CONF_PORT, CONF_SCAN_INTERVAL
-from homeassistant.core import HomeAssistant
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import Platform
+from homeassistant.core import HomeAssistant
 
 from .const import DOMAIN
 from .coordinator import RedodoCoordinator
 
-PLATFORMS = [
-    "sensor",
-    "number",
-    "select",
-    "switch",
-    "button",
+PLATFORMS: list[Platform] = [
+    Platform.SENSOR,
+    Platform.NUMBER,
+    Platform.SELECT,
+    Platform.SWITCH,
+    Platform.BUTTON,
 ]
+
+
+async def async_setup(
+    hass: HomeAssistant,
+    config: dict,
+) -> bool:
+    """Set up Redodo from yaml (unused)."""
+    return True
+
 
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
-):
+) -> bool:
+    """Set up Redodo from a config entry."""
 
     coordinator = RedodoCoordinator(
-        hass,
-        port=entry.data[CONF_PORT],
-        slave=entry.data["slave"],
-        scan_interval=entry.data[CONF_SCAN_INTERVAL],
+        hass=hass,
+        entry=entry,
     )
 
     await coordinator.async_config_entry_first_refresh()
 
     hass.data.setdefault(DOMAIN, {})
-
     hass.data[DOMAIN][entry.entry_id] = coordinator
 
     await hass.config_entries.async_forward_entry_setups(
@@ -40,10 +49,12 @@ async def async_setup_entry(
 
     return True
 
+
 async def async_unload_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
-):
+) -> bool:
+    """Unload a config entry."""
 
     unload_ok = await hass.config_entries.async_unload_platforms(
         entry,
@@ -51,10 +62,7 @@ async def async_unload_entry(
     )
 
     if unload_ok:
-
-        coordinator = hass.data[DOMAIN].pop(entry.entry_id)
-
-        await coordinator.async_shutdown()
+        await hass.data[DOMAIN][entry.entry_id].modbus.close()
+        hass.data[DOMAIN].pop(entry.entry_id)
 
     return unload_ok
-

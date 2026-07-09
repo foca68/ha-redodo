@@ -3,11 +3,9 @@
 from __future__ import annotations
 
 import asyncio
-import logging
 
 from pymodbus.client import AsyncModbusSerialClient
-
-_LOGGER = logging.getLogger(__name__)
+from pymodbus.framer import FramerType
 
 
 class RedodoModbus:
@@ -23,6 +21,7 @@ class RedodoModbus:
 
         self._client = AsyncModbusSerialClient(
             port=port,
+            framer=FramerType.RTU,
             baudrate=baudrate,
             bytesize=8,
             parity="N",
@@ -109,3 +108,29 @@ class RedodoModbus:
                 raise RuntimeError(result)
 
             return True
+
+    async def raw_command(
+        self,
+        frame: bytes,
+    ) -> bytes:
+        """
+        Proprietary Redodo command.
+
+        Used for:
+        - 0x78 Factory Reset
+        - 0x79 Clear History
+        - future vendor specific commands
+        """
+
+        async with self._lock:
+
+            if not await self.connect():
+                raise ConnectionError("Unable to connect")
+
+            transport = self._client.transport
+
+            transport.write(frame)
+
+            await asyncio.sleep(0.2)
+
+            return b""

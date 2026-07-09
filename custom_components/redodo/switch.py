@@ -8,8 +8,6 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN
-from .coordinator import RedodoCoordinator
-from .descriptions import SWITCHES
 from .entity import RedodoEntity
 
 
@@ -18,62 +16,90 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up Redodo switches."""
 
-    coordinator: RedodoCoordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinator = hass.data[DOMAIN][entry.entry_id]
 
     async_add_entities(
-        RedodoSwitch(coordinator, description)
-        for description in SWITCHES
+        [
+            RedodoLoadSwitch(coordinator),
+            RedodoLowTempSwitch(coordinator),
+        ]
     )
 
 
-class RedodoSwitch(RedodoEntity, SwitchEntity):
-    """Representation of a Redodo switch."""
+class RedodoLoadSwitch(
+    RedodoEntity,
+    SwitchEntity,
+):
 
-    def __init__(
-        self,
-        coordinator: RedodoCoordinator,
-        description,
-    ) -> None:
+    def __init__(self, coordinator):
 
-        super().__init__(
-            coordinator,
-            description.name,
-            description.key,
+        super().__init__(coordinator)
+
+        self._attr_name = "Load Output"
+
+        self._attr_unique_id = (
+            f"{coordinator.entry.entry_id}_load_output"
         )
 
-        self.entity_description = description
+        self._address = 288
 
     @property
     def is_on(self):
-        """Return switch state."""
 
-        value = self.get_register(
-            self.entity_description.address
-        )
+        value = self.coordinator.get(self._address)
 
-        if value is None:
-            return None
-
-        return value == self.entity_description.on_value
+        return value == 1
 
     async def async_turn_on(self, **kwargs):
-        """Turn switch on."""
 
-        await self.write_register(
-            self.entity_description.address,
-            self.entity_description.on_value,
+        await self.coordinator.write_register(
+            self._address,
+            1,
         )
-
-        await self.coordinator.async_request_refresh()
 
     async def async_turn_off(self, **kwargs):
-        """Turn switch off."""
 
-        await self.write_register(
-            self.entity_description.address,
-            self.entity_description.off_value,
+        await self.coordinator.write_register(
+            self._address,
+            0,
         )
 
-        await self.coordinator.async_request_refresh()
+
+class RedodoLowTempSwitch(
+    RedodoEntity,
+    SwitchEntity,
+):
+
+    def __init__(self, coordinator):
+
+        super().__init__(coordinator)
+
+        self._attr_name = "Low Temperature Protection"
+
+        self._attr_unique_id = (
+            f"{coordinator.entry.entry_id}_low_temperature"
+        )
+
+        self._address = 290
+
+    @property
+    def is_on(self):
+
+        value = self.coordinator.get(self._address)
+
+        return value == 1
+
+    async def async_turn_on(self, **kwargs):
+
+        await self.coordinator.write_register(
+            self._address,
+            1,
+        )
+
+    async def async_turn_off(self, **kwargs):
+
+        await self.coordinator.write_register(
+            self._address,
+            0,
+        )

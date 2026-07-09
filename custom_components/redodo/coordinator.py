@@ -1,137 +1,89 @@
-"""Data coordinator for Redodo."""
+"""Coordinator for Redodo."""
 
 from __future__ import annotations
 
 from datetime import timedelta
 import logging
 
-from homeassistant.const import CONF_BAUDRATE, CONF_PORT
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import (
     DataUpdateCoordinator,
     UpdateFailed,
 )
 
-from .const import (
-    DEFAULT_SCAN_INTERVAL,
-    DOMAIN,
-    HOME_COUNT,
-    HOME_START,
-    SETTING_COUNT,
-    SETTING_START,
-    TODAY_COUNT,
-    TODAY_START,
-)
-
+from .const import DOMAIN
 from .modbus import RedodoModbus
 
 _LOGGER = logging.getLogger(__name__)
 
-CONF_SLAVE = "slave"
-
 
 class RedodoCoordinator(DataUpdateCoordinator):
-    """Redodo update coordinator."""
 
-    def __init__(self, hass, entry):
+    def __init__(self, hass: HomeAssistant, entry):
 
+        self.hass = hass
         self.entry = entry
 
         self.modbus = RedodoModbus(
-            port=entry.data[CONF_PORT],
-            slave=entry.data[CONF_SLAVE],
-            baudrate=entry.data[CONF_BAUDRATE],
+            port=entry.data["port"],
+            slave=entry.data["slave"],
+            baudrate=entry.data["baudrate"],
         )
-
-        self.home = {}
-        self.settings = {}
-        self.today = {}
 
         super().__init__(
             hass,
             _LOGGER,
             name=DOMAIN,
-            update_interval=timedelta(
-                seconds=DEFAULT_SCAN_INTERVAL
-            ),
+            update_interval=timedelta(seconds=2),
         )
 
     async def _async_update_data(self):
-        """Read all controller registers."""
 
         try:
 
-            #
-            # HOME
-            #
-
-            values = await self.modbus.read_holding_registers(
-                HOME_START,
-                HOME_COUNT,
+            live = await self.modbus.read_holding_registers(
+                256,
+                35,
             )
 
-            self.home = {
-                HOME_START + i: value
-                for i, value in enumerate(values)
-            }
-
-            #
-            # SETTINGS
-            #
-
-            values = await self.modbus.read_holding_registers(
-                SETTING_START,
-                SETTING_COUNT,
+            settings = await self.modbus.read_holding_registers(
+                512,
+                16,
             )
 
-            self.settings = {
-                SETTING_START + i: value
-                for i, value in enumerate(values)
-            }
-
-            #
-            # TODAY
-            #
-
-            values = await self.modbus.read_holding_registers(
-                TODAY_START,
-                TODAY_COUNT,
+            today = await self.modbus.read_holding_registers(
+                1024,
+                5,
             )
 
-            self.today = {
-                TODAY_START + i: value
-                for i, value in enumerate(values)
-            }
+            registers = {}
 
-            return True
+            for i, value in enumerate(live):
+                registers[256 + i] = value
+
+            for i, value in enumerate(settings):
+                registers[512 + i] = value
+
+            for i, value in enumerate(today):
+                registers[1024 + i] = value
+
+            return registers
 
         except Exception as err:
-
             raise UpdateFailed(err) from err
 
-    def get_register(
-        self,
-        address: int,
-        default=None,
-    ):
-        """Return cached register."""
+    def get(self, address: int):
 
-        if address in self.home:
-            return self.home[address]
+        if self.data is None:
+            return None
 
-        if address in self.settings:
-            return self.settings[address]
+        return self.data.get(address)
 
-        if address in self.today:
-            return self.today[address]
-
-        return default
-
-    async def async_write_register(
+    async def write_register(
         self,
         address: int,
         value: int,
     ):
-        """Write one holding register."""
 
         await self.modbus.write_register(
             address,
@@ -139,22 +91,3 @@ class RedodoCoordinator(DataUpdateCoordinator):
         )
 
         await self.async_request_refresh()
-
-    async def async_write_registers(
-        self,
-        address: int,
-        values: list[int],
-    ):
-        """Write multiple holding registers."""
-
-        await self.modbus.write_registers(
-            address,
-            values,
-        )
-
-        await self.async_request_refresh()
-
-    async def async_shutdown(self):
-        """Close serial connection."""
-
-        await self.modbus.close()

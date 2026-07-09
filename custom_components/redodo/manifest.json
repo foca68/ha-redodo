@@ -2,10 +2,10 @@
   "domain": "redodo",
   "name": "Redodo Solar Controller",
   "version": "0.1.0",
-  "documentation": "https://github.com/YOUR_USERNAME/ha-redodo",
-  "issue_tracker": "https://github.com/YOUR_USERNAME/ha-redodo/issues",
+  "documentation": "https://github.com/foca68/ha-redodo",
+  "issue_tracker": "https://github.com/foca68/ha-redodo/issues",
   "codeowners": [
-    "@YOUR_USERNAME"
+    "@foca68"
   ],
   "config_flow": true,
   "iot_class": "local_polling",

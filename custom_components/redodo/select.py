@@ -8,9 +8,16 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from .const import DOMAIN
-from .coordinator import RedodoCoordinator
-from .descriptions import SELECTS
 from .entity import RedodoEntity
+
+
+BATTERY_TYPES = [
+    "User",
+    "Sealed",
+    "Gel",
+    "Flooded",
+    "Lithium LiFePO4",
+]
 
 
 async def async_setup_entry(
@@ -18,62 +25,61 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up Redodo selects."""
 
-    coordinator: RedodoCoordinator = hass.data[DOMAIN][entry.entry_id]
+    coordinator = hass.data[DOMAIN][entry.entry_id]
 
     async_add_entities(
-        RedodoSelect(coordinator, description)
-        for description in SELECTS
+        [
+            RedodoBatteryTypeSelect(
+                coordinator,
+            )
+        ]
     )
 
 
-class RedodoSelect(RedodoEntity, SelectEntity):
-    """Representation of a Redodo select."""
+class RedodoBatteryTypeSelect(
+    RedodoEntity,
+    SelectEntity,
+):
 
     def __init__(
         self,
-        coordinator: RedodoCoordinator,
-        description,
-    ) -> None:
+        coordinator,
+    ):
 
-        super().__init__(
-            coordinator,
-            description.name,
-            description.key,
+        super().__init__(coordinator)
+
+        self._address = 513
+
+        self._attr_name = "Battery Type"
+
+        self._attr_unique_id = (
+            f"{coordinator.entry.entry_id}_battery_type"
         )
 
-        self.entity_description = description
-
-        self._attr_options = list(
-            description.options.values()
-        )
+        self._attr_options = BATTERY_TYPES
 
     @property
     def current_option(self):
-        """Return current selected option."""
 
-        value = self.get_register(
-            self.entity_description.address
-        )
+        value = self.coordinator.get(self._address)
 
-        return self.entity_description.options.get(value)
+        if value is None:
+            return None
+
+        if value >= len(BATTERY_TYPES):
+            return None
+
+        return BATTERY_TYPES[value]
 
     async def async_select_option(
         self,
         option: str,
-    ) -> None:
-        """Change selected option."""
+    ):
 
-        for key, value in self.entity_description.options.items():
+        value = BATTERY_TYPES.index(option)
 
-            if value == option:
-
-                await self.write_register(
-                    self.entity_description.address,
-                    key,
-                )
-
-                await self.coordinator.async_request_refresh()
-
-                return
+        await self.coordinator.write_register(
+            self._address,
+            value,
+        )

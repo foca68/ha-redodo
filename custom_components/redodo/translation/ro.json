@@ -1,0 +1,21 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Controler solar Redodo",
+        "description": "Configurează controlerul Redodo.",
+        "data": {
+          "port": "Port serial",
+          "slave": "Adresă Modbus",
+          "baudrate": "Viteză comunicație"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Nu mă pot conecta la controler"
+    },
+    "abort": {
+      "already_configured": "Controlerul este deja configurat"
+    }
+  }
+}

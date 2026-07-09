@@ -1,0 +1,21 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Redodo Solar Controller",
+        "description": "Configure your Redodo controller.",
+        "data": {
+          "port": "Serial port",
+          "slave": "Slave address",
+          "baudrate": "Baudrate"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Cannot connect"
+    },
+    "abort": {
+      "already_configured": "Already configured"
+    }
+  }
+}

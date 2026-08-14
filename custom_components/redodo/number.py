@@ -1,4 +1,4 @@
-"""Number platform for Redodo."""
+"""Number platform for Redodo ."""
 
 from __future__ import annotations
 

@@ -1,4 +1,4 @@
-"""Sensor platform for Redodo."""
+"""Sensor platform for Redodo. """
 
 from __future__ import annotations
 

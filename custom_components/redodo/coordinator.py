@@ -56,6 +56,10 @@ class RedodoCoordinator(DataUpdateCoordinator):
                 5,
             )
 
+            _LOGGER.warning("LIVE 256-290 : %s", live)
+            _LOGGER.warning("SET  512-527 : %s", settings)
+            _LOGGER.warning("DAY 1024-1028: %s", today)
+
             registers = {}
 
             for i, value in enumerate(live):

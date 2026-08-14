@@ -1,4 +1,4 @@
-"""Base entity for Redodo."""
+"""Base entity for Redodo. """
 
 from __future__ import annotations
 

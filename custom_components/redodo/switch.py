@@ -1,4 +1,4 @@
-"""Switch platform for Redodo."""
+"""Switch platform for Redodo. """
 
 from __future__ import annotations
 

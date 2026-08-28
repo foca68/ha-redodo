@@ -69,5 +69,16 @@
         "name": "Descărcare totală"
       }
     }
+	"button": {
+	  "force_charge": {
+		"name": "Încărcare forțată"
+	  },
+	  "clear_history": {
+		"name": "Ștergere istoric"
+	  },
+	  "factory_reset": {
+		"name": "Resetare la setările din fabrică"
+	  }
+	}
   }
 }

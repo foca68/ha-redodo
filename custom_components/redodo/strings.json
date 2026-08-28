@@ -69,6 +69,17 @@
         "name": "Total Discharge"
       }
     }
+	"button": {
+	  "force_charge": {
+		"name": "Force Charge"
+	  },
+	  "clear_history": {
+		"name": "Clear History"
+	  },
+	  "factory_reset": {
+		"name": "Factory Reset"
+	  }
+	}
   }
 }
  

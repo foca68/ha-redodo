@@ -17,5 +17,57 @@
     "abort": {
       "already_configured": "Controlerul este deja configurat"
     }
+  },
+  "entity": {
+    "sensor": {
+      "battery_type": {
+        "name": "Tip baterie"
+      },
+      "battery_soc": {
+        "name": "Nivel baterie"
+      },
+      "battery_voltage": {
+        "name": "Tensiune baterie"
+      },
+      "pv_voltage": {
+        "name": "Tensiune panouri"
+      },
+      "charge_current": {
+        "name": "Curent încărcare"
+      },
+      "charge_power": {
+        "name": "Putere încărcare"
+      },
+      "charge_voltage": {
+        "name": "Tensiune încărcare"
+      },
+      "load_voltage": {
+        "name": "Tensiune sarcină"
+      },
+      "load_current": {
+        "name": "Curent sarcină"
+      },
+      "load_power": {
+        "name": "Putere sarcină"
+      },
+      "max_charge_power": {
+        "name": "Putere maximă încărcare"
+      },
+      "today_charge": {
+        "name": "Încărcare astăzi"
+      },
+      "today_discharge": {
+        "name": "Descărcare astăzi"
+      },
+      "days": {
+        "name": "Zile"
+      },
+      "total_charge": {
+        "name": "Încărcare totală"
+      },
+      "total_discharge": {
+        "name": "Descărcare totală"
+      }
+    }
   }
 }

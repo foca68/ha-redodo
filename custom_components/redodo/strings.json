@@ -17,6 +17,58 @@
     "abort": {
       "already_configured": "Device already configured"
     }
+  },
+  "entity": {
+    "sensor": {
+      "battery_type": {
+        "name": "Battery Type"
+      },
+      "battery_soc": {
+        "name": "Battery SOC"
+      },
+      "battery_voltage": {
+        "name": "Battery Voltage"
+      },
+      "pv_voltage": {
+        "name": "PV Voltage"
+      },
+      "charge_current": {
+        "name": "Charge Current"
+      },
+      "charge_power": {
+        "name": "Charge Power"
+      },
+      "charge_voltage": {
+        "name": "Charge Voltage"
+      },
+      "load_voltage": {
+        "name": "Load Voltage"
+      },
+      "load_current": {
+        "name": "Load Current"
+      },
+      "load_power": {
+        "name": "Load Power"
+      },
+      "max_charge_power": {
+        "name": "Max Charge Power"
+      },
+      "today_charge": {
+        "name": "Today Charge"
+      },
+      "today_discharge": {
+        "name": "Today Discharge"
+      },
+      "days": {
+        "name": "Days"
+      },
+      "total_charge": {
+        "name": "Total Charge"
+      },
+      "total_discharge": {
+        "name": "Total Discharge"
+      }
+    }
   }
 }
  

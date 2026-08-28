@@ -22,7 +22,7 @@ async def async_setup_entry(
     async_add_entities(
         [
             RedodoLoadSwitch(coordinator),
-            RedodoLowTempSwitch(coordinator),
+            # RedodoLowTempSwitch(coordinator),
         ]
     )
 

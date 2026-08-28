@@ -20,23 +20,22 @@ from homeassistant.const import (
 @dataclass(frozen=True, kw_only=True)
 class RedodoSensorDescription(SensorEntityDescription):
     """Redodo sensor description."""
-
     address: int = 0
     scale: float = 1.0
-
+    is_fahrenheit: bool = False  # Adăugăm această linie nouă
 
 SENSORS = (
 
     RedodoSensorDescription(
         key="battery_type",
         name="Battery Type",
-        address=256,
+        address=256, #registru corect
     ),
 
     RedodoSensorDescription(
         key="battery_soc",
         name="Battery SOC",
-        address=257,
+        address=257, #registru corect
         native_unit_of_measurement="%",
         state_class=SensorStateClass.MEASUREMENT,
     ),
@@ -44,7 +43,56 @@ SENSORS = (
     RedodoSensorDescription(
         key="battery_voltage",
         name="Battery Voltage",
-        address=258,
+        address=258, #registru corect
+        scale=0.1,
+        device_class=SensorDeviceClass.VOLTAGE,
+        native_unit_of_measurement=UnitOfElectricPotential.VOLT,
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+    
+        RedodoSensorDescription(
+        key="pv_voltage",
+        name="PV Voltage",
+        address=265, #registru corect  
+        scale=0.1,
+        device_class=SensorDeviceClass.VOLTAGE,
+        native_unit_of_measurement=UnitOfElectricPotential.VOLT,
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+    
+    RedodoSensorDescription(
+        key="charge_current",
+        name="Charge Current",
+        address=259, #registru corect  
+        scale=0.01,
+        device_class=SensorDeviceClass.CURRENT,
+        native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+ 
+    RedodoSensorDescription(
+        key="charge_power",
+        name="Charge Power",
+        address=260, #registru corect
+        device_class=SensorDeviceClass.POWER,
+        native_unit_of_measurement=UnitOfPower.WATT,
+        state_class=SensorStateClass.MEASUREMENT,
+    ),  
+    
+    RedodoSensorDescription(
+        key="charge_voltage",
+        name="Charge Voltage",
+        address=262, #registru corect
+        scale=0.1,
+        device_class=SensorDeviceClass.VOLTAGE,
+        native_unit_of_measurement=UnitOfElectricPotential.VOLT,
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
+    
+    RedodoSensorDescription(
+        key="load_voltage",
+        name="Load Voltage",
+        address=262,  # ??
         scale=0.1,
         device_class=SensorDeviceClass.VOLTAGE,
         native_unit_of_measurement=UnitOfElectricPotential.VOLT,
@@ -52,29 +100,10 @@ SENSORS = (
     ),
 
     RedodoSensorDescription(
-        key="pv_current",
-        name="PV Current",
-        address=259,
-        scale=0.01,
-        device_class=SensorDeviceClass.CURRENT,
-        native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
-        state_class=SensorStateClass.MEASUREMENT,
-    ),
-
-    RedodoSensorDescription(
-        key="pv_power",
-        name="PV Power",
-        address=260,
-        device_class=SensorDeviceClass.POWER,
-        native_unit_of_measurement=UnitOfPower.WATT,
-        state_class=SensorStateClass.MEASUREMENT,
-    ),
-
-    RedodoSensorDescription(
         key="load_current",
         name="Load Current",
-        address=261,
-        scale=0.1,
+        address=263, #registru corect
+        scale=0.01,
         device_class=SensorDeviceClass.CURRENT,
         native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
         state_class=SensorStateClass.MEASUREMENT,
@@ -83,44 +112,17 @@ SENSORS = (
     RedodoSensorDescription(
         key="load_power",
         name="Load Power",
-        address=262,
+        address=264, #registru corect
         device_class=SensorDeviceClass.POWER,
         native_unit_of_measurement=UnitOfPower.WATT,
         state_class=SensorStateClass.MEASUREMENT,
     ),
 
-    RedodoSensorDescription(
-        key="controller_temperature",
-        name="Controller Temperature",
-        address=263,
-        device_class=SensorDeviceClass.TEMPERATURE,
-        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
-        state_class=SensorStateClass.MEASUREMENT,
-    ),
-
-    RedodoSensorDescription(
-        key="battery_temperature",
-        name="Battery Temperature",
-        address=264,
-        device_class=SensorDeviceClass.TEMPERATURE,
-        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
-        state_class=SensorStateClass.MEASUREMENT,
-    ),
-
-    RedodoSensorDescription(
-        key="pv_voltage",
-        name="PV Voltage",
-        address=265,
-        scale=0.1,
-        device_class=SensorDeviceClass.VOLTAGE,
-        native_unit_of_measurement=UnitOfElectricPotential.VOLT,
-        state_class=SensorStateClass.MEASUREMENT,
-    ),
 
     RedodoSensorDescription(
         key="max_charge_power",
         name="Max Charge Power",
-        address=266,
+        address=266, #registru corect
         device_class=SensorDeviceClass.POWER,
         native_unit_of_measurement=UnitOfPower.WATT,
         state_class=SensorStateClass.MEASUREMENT,
@@ -129,15 +131,31 @@ SENSORS = (
     RedodoSensorDescription(
         key="today_charge",
         name="Today Charge",
-        address=267,
+        address=267, #registru corect
+        native_unit_of_measurement="Wh",
+    ),
+    
+    RedodoSensorDescription(
+        key="today_discharge",
+        name="Today Discharge",
+        address=268, #registru corect
         native_unit_of_measurement="Wh",
     ),
 
-    RedodoSensorDescription(
-        key="work_mode",
-        name="Work Mode",
-        address=270,
-    ),
+
+# În interiorul listei SENSORS:
+    # RedodoSensorDescription(  # structura incorecta
+        # key="battery_temperature",
+        # name="Battery Temperature",
+        # address=269,
+        # scale=0.1,
+        # is_fahrenheit=True,
+        # device_class=SensorDeviceClass.TEMPERATURE,
+        # native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        # state_class=SensorStateClass.MEASUREMENT,
+    # ),
+
+
 
     RedodoSensorDescription(
         key="days",
@@ -145,11 +163,7 @@ SENSORS = (
         address=271,
     ),
 
-    RedodoSensorDescription(
-        key="error_code",
-        name="Error Code",
-        address=272,
-    ),
+
 
     RedodoSensorDescription(
         key="total_charge",
@@ -165,50 +179,21 @@ SENSORS = (
         native_unit_of_measurement="Wh",
     ),
 
-    RedodoSensorDescription(
-        key="low_temp_status",
-        name="Low Temperature Protection",
-        address=290,
-    ),
-
-    RedodoSensorDescription(
-        key="today_load_energy",
-        name="Today's Load Energy",
-        address=1024,
-        native_unit_of_measurement="Wh",
-    ),
-
-    RedodoSensorDescription(
-        key="today_charge_energy",
-        name="Today's Charge Energy",
-        address=1025,
-        native_unit_of_measurement="Wh",
-    ),
-
-    RedodoSensorDescription(
-        key="today_peak_power",
-        name="Today's Peak Power",
-        address=1026,
-        device_class=SensorDeviceClass.POWER,
-        native_unit_of_measurement=UnitOfPower.WATT,
-    ),
-
-    RedodoSensorDescription(
-        key="today_min_voltage",
-        name="Today's Min Battery Voltage",
-        address=1027,
-        scale=0.1,
-        device_class=SensorDeviceClass.VOLTAGE,
-        native_unit_of_measurement=UnitOfElectricPotential.VOLT,
-    ),
-
-    RedodoSensorDescription(
-        key="today_max_voltage",
-        name="Today's Max Battery Voltage",
-        address=1028,
-        scale=0.1,
-        device_class=SensorDeviceClass.VOLTAGE,
-        native_unit_of_measurement=UnitOfElectricPotential.VOLT,
-    ),
-
+    # RedodoSensorDescription(
+        # key="low_temp_status",
+        # name="Low Temperature Protection",
+        # address=290,
+    # ),
+    
+    # RedodoSensorDescription(
+        # key="work_mode",
+        # name="Work Mode",
+        # address=270,
+    # ),
+    
+    # RedodoSensorDescription(
+        # key="error_code",
+        # name="Error Code",
+        # address=272,
+    # ),
 )

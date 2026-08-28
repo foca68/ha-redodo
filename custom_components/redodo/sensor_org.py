@@ -46,6 +46,7 @@ class RedodoSensor(
 
     @property
     def native_value(self):
+
         value = self.coordinator.get(
             self.entity_description.address
         )
@@ -53,21 +54,10 @@ class RedodoSensor(
         if value is None:
             return None
 
-        # Filtru pentru senzor deconectat (0x8000 / 32768)
-        # if value == 32768:
-            # return None
-
-        # Calculăm valoarea scalată inițială (ex: 594 * 0.1 = 59.4)
-        scaled_value = value * self.entity_description.scale
-
-        # Dacă senzorul este în Fahrenheit, îl transformăm în Celsius pentru HA
-        if getattr(self.entity_description, "is_fahrenheit", False):
-            celsius = (scaled_value - 30) * 5 / 9
-            return round(celsius, 1)
-
-        # Pentru restul senzorilor standard
         if self.entity_description.scale != 1:
-            return round(scaled_value, 2)
+            return round(
+                value * self.entity_description.scale,
+                2,
+            )
 
         return value
-

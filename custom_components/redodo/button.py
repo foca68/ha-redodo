@@ -21,9 +21,9 @@ async def async_setup_entry(
 
     async_add_entities(
         [
-            RedodoForceChargeButton(coordinator),
+            # RedodoForceChargeButton(coordinator),
             RedodoClearHistoryButton(coordinator),
-            RedodoFactoryResetButton(coordinator),
+            # RedodoFactoryResetButton(coordinator),
         ]
     )
 

@@ -1,0 +1,182 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Controler solar Redodo",
+        "description": "Conectează adaptorul RS485 și introdu setările Modbus.",
+        "data": {
+          "name": "Nume",
+          "port": "Port serial",
+          "slave": "Adresă Modbus",
+          "baudrate": "Viteză comunicație"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Nu pot citi de la controler. Verifică portul, adresa, viteza și cablarea (A/B)."
+    },
+    "abort": {
+      "already_configured": "Dispozitivul este deja configurat"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Controler solar Redodo",
+        "data": {
+          "scan_interval": "Interval de citire (secunde)"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "battery_soc": {
+        "name": "Nivel baterie"
+      },
+      "battery_voltage": {
+        "name": "Tensiune baterie"
+      },
+      "charge_current": {
+        "name": "Curent încărcare"
+      },
+      "charge_power": {
+        "name": "Putere încărcare"
+      },
+      "battery_temperature": {
+        "name": "Temperatură baterie"
+      },
+      "controller_temperature": {
+        "name": "Temperatură controller"
+      },
+      "load_voltage": {
+        "name": "Tensiune sarcină"
+      },
+      "load_current": {
+        "name": "Curent sarcină"
+      },
+      "load_power": {
+        "name": "Putere sarcină"
+      },
+      "pv_voltage": {
+        "name": "Tensiune PV"
+      },
+      "max_charge_power": {
+        "name": "Putere maximă încărcare azi"
+      },
+      "today_charge": {
+        "name": "Încărcat azi"
+      },
+      "today_discharge": {
+        "name": "Descărcat azi"
+      },
+      "battery_voltage_max_today": {
+        "name": "Tensiune baterie max azi"
+      },
+      "battery_voltage_min_today": {
+        "name": "Tensiune baterie min azi"
+      },
+      "days": {
+        "name": "Zile de funcționare"
+      },
+      "total_charge": {
+        "name": "Total încărcat"
+      },
+      "total_discharge": {
+        "name": "Total descărcat"
+      },
+      "battery_type": {
+        "name": "Tip baterie"
+      },
+      "system_voltage": {
+        "name": "Tensiune sistem"
+      },
+      "charge_stages": {
+        "name": "Etape încărcare"
+      },
+      "model": {
+        "name": "Model"
+      },
+      "firmware": {
+        "name": "Firmware"
+      },
+      "hardware": {
+        "name": "Hardware"
+      },
+      "status_1": {
+        "name": "Stare 1 (0x0121)"
+      },
+      "status_2": {
+        "name": "Stare 2 (0x0122)"
+      },
+      "register_269": {
+        "name": "Registru 0x010D"
+      },
+      "setting_524": {
+        "name": "Setare 0x020C"
+      },
+      "setting_525": {
+        "name": "Setare 0x020D (timer 1)"
+      },
+      "setting_526": {
+        "name": "Setare 0x020E (timer 2)"
+      },
+      "setting_528": {
+        "name": "Setare 0x0210 (sarcină)"
+      },
+      "setting_529": {
+        "name": "Setare 0x0211 (sarcină max)"
+      }
+    },
+    "number": {
+      "absorption_voltage": {
+        "name": "Tensiune absorbție"
+      },
+      "equalization_voltage": {
+        "name": "Tensiune egalizare"
+      },
+      "float_voltage": {
+        "name": "Tensiune float"
+      },
+      "boost_return_voltage": {
+        "name": "Tensiune revenire boost"
+      },
+      "low_battery_warning": {
+        "name": "Avertizare baterie descărcată"
+      },
+      "low_battery_cutoff": {
+        "name": "Oprire la baterie descărcată"
+      },
+      "over_discharge_protection": {
+        "name": "Protecție supradescărcare"
+      },
+      "discharge_reconnect": {
+        "name": "Reconectare descărcare"
+      },
+      "max_charge_current": {
+        "name": "Curent maxim încărcare"
+      }
+    },
+    "binary_sensor": {
+      "charging": {
+        "name": "Se încarcă"
+      }
+    },
+    "switch": {
+      "load_output": {
+        "name": "Ieșire sarcină"
+      }
+    },
+    "button": {
+      "force_charge": {
+        "name": "Forțare încărcare"
+      },
+      "clear_history": {
+        "name": "Șterge istoric"
+      },
+      "factory_reset": {
+        "name": "Resetare din fabrică"
+      }
+    }
+  }
+}

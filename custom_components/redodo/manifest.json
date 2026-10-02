@@ -1,20 +1,14 @@
 {
   "domain": "redodo",
   "name": "Redodo Solar Controller",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "documentation": "https://github.com/foca68/ha-redodo",
   "issue_tracker": "https://github.com/foca68/ha-redodo/issues",
-  "codeowners": [
-    "@foca68"
-  ],
+  "codeowners": ["@foca68"],
   "config_flow": true,
   "iot_class": "local_polling",
   "integration_type": "hub",
-  "requirements": [
-    "pymodbus>=3.8.3"
-  ],
+  "requirements": ["pymodbus>=3.8.3"],
   "dependencies": [],
-  "loggers": [
-    "pymodbus"
-  ]
+  "loggers": ["pymodbus"]
 }

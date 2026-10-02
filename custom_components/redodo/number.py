@@ -1,103 +1,107 @@
-"""Number platform for Redodo ."""
+"""Number platform: charge/discharge settings.
 
-# from __future__ import annotations
+All numbers are disabled by default - writing wrong values to a charge
+controller can damage a battery. Limits are given for a 12 V system and are
+scaled automatically for 24 V / 48 V controllers (register 514).
+"""
 
-# from homeassistant.components.number import NumberEntity
-# from homeassistant.config_entries import ConfigEntry
-# from homeassistant.core import HomeAssistant
-# from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from __future__ import annotations
 
-# from .const import DOMAIN
-# from .entity import RedodoEntity
+from homeassistant.components.number import NumberDeviceClass, NumberEntity, NumberMode
+from homeassistant.config_entries import ConfigEntry
+from homeassistant.const import EntityCategory, UnitOfElectricCurrent, UnitOfElectricPotential
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
+from .const import DOMAIN, REG_SYSTEM_VOLTAGE
+from .entity import RedodoEntity
 
-# NUMBERS = (
-    # ("system_voltage", "System Voltage", 514, 0, 2, 1),
-    # ("ovp_voltage", "Over Voltage Protection", 515, 10.0, 17.0, 0.1),
-    # ("equalize_voltage", "Equalize Voltage", 516, 10.0, 15.5, 0.1),
-    # ("boost_voltage", "Boost Voltage", 517, 10.0, 15.5, 0.1),
-    # ("float_voltage", "Float Voltage", 518, 10.0, 15.0, 0.1),
-    # ("boost_recovery", "Boost Recovery Voltage", 519, 10.0, 14.5, 0.1),
-    # ("overdischarge_reconnect", "Overdischarge Reconnect", 520, 10.0, 14.0, 0.1),
-    # ("under_voltage_warning", "Under Voltage Warning", 521, 10.0, 13.5, 0.1),
-    # ("overdischarge_disconnect", "Overdischarge Disconnect", 522, 10.0, 13.0, 0.1),
-    # ("discharge_limit", "Discharge Limit", 523, 9.0, 12.5, 0.1),
-    # ("load_mode", "Load Mode", 524, 0, 255, 1),
-    # ("light_delay", "Light Delay", 525, 0, 60, 1),
-# )
-
-
-# async def async_setup_entry(
-    # hass: HomeAssistant,
-    # entry: ConfigEntry,
-    # async_add_entities: AddEntitiesCallback,
-# ) -> None:
-
-    # coordinator = hass.data[DOMAIN][entry.entry_id]
-
-    # async_add_entities(
-        # RedodoNumber(
-            # coordinator,
-            # key,
-            # name,
-            # address,
-            # minimum,
-            # maximum,
-            # step,
-        # )
-        # for key, name, address, minimum, maximum, step in NUMBERS
-    # )
+# key, name, address, min (12 V), max (12 V)
+VOLTAGE_NUMBERS = (
+    ("absorption_voltage", "Absorption Voltage", 516, 9.0, 16.5),
+    ("equalization_voltage", "Equalization Voltage", 517, 9.0, 16.5),
+    ("float_voltage", "Float Voltage", 518, 9.0, 16.5),
+    ("boost_return_voltage", "Boost Return Voltage", 519, 9.0, 16.5),
+    ("low_battery_warning", "Low Battery Warning", 520, 9.0, 16.5),
+    ("low_battery_cutoff", "Low Battery Cutoff", 521, 9.0, 16.5),
+    ("over_discharge_protection", "Over-discharge Protection", 522, 9.0, 16.5),
+    ("discharge_reconnect", "Discharge Reconnect", 523, 9.0, 16.5),
+)
 
 
-# class RedodoNumber(
-    # RedodoEntity,
-    # NumberEntity,
-# ):
+async def async_setup_entry(
+    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+) -> None:
+    c = hass.data[DOMAIN][entry.entry_id]
+    entities: list[NumberEntity] = [RedodoVoltageNumber(c, *n) for n in VOLTAGE_NUMBERS]
+    entities.append(RedodoMaxCurrentNumber(c))
+    async_add_entities(entities)
 
-    # def __init__(
-        # self,
-        # coordinator,
-        # key,
-        # name,
-        # address,
-        # minimum,
-        # maximum,
-        # step,
-    # ):
 
-        # super().__init__(coordinator)
+class _Base(RedodoEntity, NumberEntity):
+    _attr_entity_category = EntityCategory.CONFIG
+    _attr_entity_registry_enabled_default = False
+    _attr_mode = NumberMode.BOX
+    _address = 0
 
-        # self._address = address
-        # self._step = step
+    def __init__(self, coordinator, key: str) -> None:
+        super().__init__(coordinator)
+        self._attr_translation_key = key
+        self._attr_unique_id = f"{coordinator.entry.entry_id}_{key}"
 
-        # self._attr_name = name
-        # self._attr_unique_id = f"{coordinator.entry.entry_id}_{key}"
 
-        # self._attr_native_min_value = minimum
-        # self._attr_native_max_value = maximum
-        # self._attr_native_step = step
+class RedodoVoltageNumber(_Base):
+    """Voltage setting stored as volts x10."""
 
-    # @property
-    # def native_value(self):
+    _attr_device_class = NumberDeviceClass.VOLTAGE
+    _attr_native_unit_of_measurement = UnitOfElectricPotential.VOLT
+    _attr_native_step = 0.1
 
-        # value = self.coordinator.get(self._address)
+    def __init__(self, coordinator, key, name, address, vmin, vmax) -> None:
+        super().__init__(coordinator, key)
+        self._attr_name = name
+        self._address = address
+        self._vmin, self._vmax = vmin, vmax
 
-        # if value is None:
-            # return None
+    @property
+    def _factor(self) -> float:
+        sv = self.coordinator.get(REG_SYSTEM_VOLTAGE)
+        return sv / 12 if sv in (12, 24, 48) else 1.0
 
-        # if self._step == 0.1:
-            # return value / 10
+    @property
+    def native_min_value(self) -> float:
+        return round(self._vmin * self._factor, 1)
 
-        # return value
+    @property
+    def native_max_value(self) -> float:
+        return round(self._vmax * self._factor, 1)
 
-    # async def async_set_native_value(self, value):
+    @property
+    def native_value(self) -> float | None:
+        raw = self.coordinator.get(self._address)
+        return None if raw is None else round(raw / 10, 1)
 
-        # if self._step == 0.1:
-            # value = int(round(value * 10))
-        # else:
-            # value = int(value)
+    async def async_set_native_value(self, value: float) -> None:
+        await self.coordinator.write_register(self._address, int(round(value * 10)))
 
-        # await self.coordinator.write_register(
-            # self._address,
-            # value,
-        # )
+
+class RedodoMaxCurrentNumber(_Base):
+    """Maximum charge current (A)."""
+
+    _attr_name = "Max Charge Current"
+    _attr_device_class = NumberDeviceClass.CURRENT
+    _attr_native_unit_of_measurement = UnitOfElectricCurrent.AMPERE
+    _attr_native_min_value = 1
+    _attr_native_max_value = 40
+    _attr_native_step = 1
+    _address = 527
+
+    def __init__(self, coordinator) -> None:
+        super().__init__(coordinator, "max_charge_current")
+
+    @property
+    def native_value(self) -> float | None:
+        return self.coordinator.get(self._address)
+
+    async def async_set_native_value(self, value: float) -> None:
+        await self.coordinator.write_register(self._address, int(value))

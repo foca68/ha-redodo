@@ -1,4 +1,4 @@
-"""Sensor platform for Redodo. """
+"""Sensor platform for Redodo."""
 
 from __future__ import annotations
 
@@ -13,61 +13,33 @@ from .entity import RedodoEntity
 
 
 async def async_setup_entry(
-    hass: HomeAssistant,
-    entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
+    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
 ) -> None:
-
     coordinator = hass.data[DOMAIN][entry.entry_id]
-
-    async_add_entities(
-        [RedodoSensor(coordinator, description) for description in SENSORS]
-    )
+    async_add_entities(RedodoSensor(coordinator, d) for d in SENSORS)
 
 
-class RedodoSensor(
-    RedodoEntity,
-    SensorEntity,
-):
+class RedodoSensor(RedodoEntity, SensorEntity):
+    """Generic register-backed sensor."""
 
-    def __init__(
-        self,
-        coordinator,
-        description: RedodoSensorDescription,
-    ) -> None:
+    entity_description: RedodoSensorDescription
 
+    def __init__(self, coordinator, description: RedodoSensorDescription) -> None:
         super().__init__(coordinator)
-
         self.entity_description = description
-
-        self._attr_unique_id = (
-            f"{coordinator.entry.entry_id}_{description.key}"
-        )
+        self._attr_unique_id = f"{coordinator.entry.entry_id}_{description.key}"
 
     @property
     def native_value(self):
-        value = self.coordinator.get(
-            self.entity_description.address
-        )
-
-        if value is None:
+        regs = self.coordinator.data
+        if not regs:
             return None
-
-        # Filtru pentru senzor deconectat (0x8000 / 32768)
-        # if value == 32768:
-            # return None
-
-        # Calculăm valoarea scalată inițială (ex: 594 * 0.1 = 59.4)
-        scaled_value = value * self.entity_description.scale
-
-        # Dacă senzorul este în Fahrenheit, îl transformăm în Celsius pentru HA
-        if getattr(self.entity_description, "is_fahrenheit", False):
-            celsius = (scaled_value - 30) * 5 / 9
-            return round(celsius, 1)
-
-        # Pentru restul senzorilor standard
-        if self.entity_description.scale != 1:
-            return round(scaled_value, 2)
-
-        return value
-
+        d = self.entity_description
+        if d.value_fn is not None:
+            return d.value_fn(regs)
+        raw = regs.get(d.address)
+        if raw is None:
+            return None
+        if d.scale != 1:
+            return round(raw * d.scale, 3)
+        return raw

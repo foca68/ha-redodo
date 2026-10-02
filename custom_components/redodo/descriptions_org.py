@@ -73,7 +73,7 @@ SENSORS = (
     RedodoSensorDescription(
         key="load_current",
         name="Load Current",
-        address=263, #261 nedectat
+        address=263, 
         scale=0.01,
         device_class=SensorDeviceClass.CURRENT,
         native_unit_of_measurement=UnitOfElectricCurrent.AMPERE,
@@ -98,14 +98,16 @@ SENSORS = (
         # state_class=SensorStateClass.MEASUREMENT,
     # ),
 
-    # RedodoSensorDescription(
-        # key="battery_temperature",
-        # name="Battery Temperature",
-        # address=264, #Load Power
-        # device_class=SensorDeviceClass.TEMPERATURE,
-        # native_unit_of_measurement=UnitOfTemperature.CELSIUS,
-        # state_class=SensorStateClass.MEASUREMENT,
-    # ),
+    RedodoSensorDescription(
+        key="battery_temp",
+        name="Battery Temperature",
+        address=261,       # 0x0105
+        scale=0.01,        # 6423 * 0.01 = 64.23°F
+        is_fahrenheit=True,
+        device_class=SensorDeviceClass.TEMPERATURE,
+        native_unit_of_measurement=UnitOfTemperature.CELSIUS,
+        state_class=SensorStateClass.MEASUREMENT,
+    ),
 
     RedodoSensorDescription(
         key="pv_voltage",

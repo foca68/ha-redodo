@@ -1,4 +1,4 @@
-"""Base entity for Redodo. """
+"""Base entity for Redodo."""
 
 from __future__ import annotations
 
@@ -9,29 +9,18 @@ from .const import DOMAIN
 
 
 class RedodoEntity(CoordinatorEntity):
+    """Base class: one device per config entry."""
 
-    def __init__(self, coordinator) -> None:
-        """Initialize Redodo entity."""
-        super().__init__(coordinator)
-
-        self._attr_has_entity_name = True
+    _attr_has_entity_name = True
 
     @property
     def device_info(self) -> DeviceInfo:
-        """Return device information."""
+        c = self.coordinator
         return DeviceInfo(
-            identifiers={
-                (
-                    DOMAIN,
-                    self.coordinator.entry.entry_id,
-                )
-            },
-            name=self.coordinator.entry.title,
+            identifiers={(DOMAIN, c.entry.entry_id)},
+            name=c.entry.title,
             manufacturer="Redodo",
-            model="MPPT Solar Controller",
+            model=c.model or "MPPT Solar Controller",
+            sw_version=c.sw_version,
+            hw_version=c.hw_version,
         )
-
-    @property
-    def available(self) -> bool:
-        """Return availability."""
-        return self.coordinator.last_update_success

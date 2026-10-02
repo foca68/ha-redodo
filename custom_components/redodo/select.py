@@ -1,6 +1,6 @@
-"""Select platform for Redodo. """
+"""Select platform for Redodo."""
 
-# from __future__ import annotations
+from __future__ import annotations
 
 # from homeassistant.components.select import SelectEntity
 # from homeassistant.config_entries import ConfigEntry
